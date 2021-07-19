@@ -33,23 +33,16 @@ func AttachCgroup(opts CgroupOptions) (Link, error) {
 		return nil, fmt.Errorf("can't open cgroup: %s", err)
 	}
 
-	clone, err := opts.Program.Clone()
-	if err != nil {
-		cgroup.Close()
-		return nil, err
-	}
-
 	var cg Link
-	cg, err = newLinkCgroup(cgroup, opts.Attach, clone)
+	cg, err = newLinkCgroup(cgroup, opts.Attach, opts.Program)
 	if errors.Is(err, ErrNotSupported) {
-		cg, err = newProgAttachCgroup(cgroup, opts.Attach, clone, flagAllowMulti)
+		cg, err = newProgAttachCgroup(cgroup, opts.Attach, opts.Program, flagAllowMulti)
 	}
 	if errors.Is(err, ErrNotSupported) {
-		cg, err = newProgAttachCgroup(cgroup, opts.Attach, clone, flagAllowOverride)
+		cg, err = newProgAttachCgroup(cgroup, opts.Attach, opts.Program, flagAllowOverride)
 	}
 	if err != nil {
 		cgroup.Close()
-		clone.Close()
 		return nil, err
 	}
 
